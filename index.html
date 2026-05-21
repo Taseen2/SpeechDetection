@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Notes | Premium Dictation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="waveform" id="visualizer">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+                <h1>Voice Notes</h1>
+            </div>
+            <div class="header-meta">
+                <span id="live-time">--:-- --</span>
+            </div>
+        </header>
+
+        <!-- Utility Toolbar -->
+        <section class="toolbar">
+            <div class="toolbar-actions">
+                <button id="btn-toggle" class="btn btn-primary" aria-label="Toggle Listening">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    <span id="toggle-text">Stop Listening</span>
+                </button>
+                <button id="btn-copy" class="btn" aria-label="Copy to Clipboard">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copy
+                </button>
+                <button id="btn-download" class="btn" aria-label="Download TXT">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download
+                </button>
+                <button id="btn-clear" class="btn btn-danger" aria-label="Clear Notes">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Clear
+                </button>
+            </div>
+            <div class="toolbar-stats">
+                <span id="word-count">0 words</span>
+                <span class="divider">•</span>
+                <span id="char-count">0 chars</span>
+            </div>
+        </section>
+
+        <!-- Main Editor Area -->
+        <main class="editor-surface" id="editor-container">
+            <div id="empty-state" class="empty-state">
+                <div class="empty-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                </div>
+                <h2>Ready for your voice...</h2>
+                <p>Start speaking to create a note. Your thoughts will appear here in real-time.</p>
+            </div>
+            <div id="transcript-box" class="transcript-box" spellcheck="false">
+                <!-- Spans and Paragraphs will be injected here -->
+            </div>
+        </main>
+
+        <!-- Footer Command Guide -->
+        <footer class="app-footer">
+            <div class="guide-header">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Voice Commands
+            </div>
+            <div class="command-group">
+                <div class="cmd-pill">
+                    <span class="cmd-trigger">"New paragraph"</span>
+                    <span class="cmd-effect">New Line</span>
+                </div>
+                <div class="cmd-pill">
+                    <span class="cmd-trigger">"Clear screen"</span>
+                    <span class="cmd-effect">Wipe Page</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
