@@ -5,15 +5,16 @@
 
 // 1. Core API Initialization
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
 
 if (!SpeechRecognition) {
     alert("This browser doesn't support the Web Speech API. For the best experience, please use Google Chrome or Microsoft Edge.");
+} else {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true; 
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
 }
-
-const recognition = new SpeechRecognition();
-recognition.continuous = true; 
-recognition.interimResults = true;
-recognition.lang = 'en-US';
 
 // 2. DOM Cache
 const transcriptBox = document.getElementById('transcript-box');
@@ -100,12 +101,29 @@ function resetWorkspace() {
 
 // 5. Native Action Event Listeners
 
+// MANUAL EDITING SYNC
+transcriptBox.addEventListener('input', () => {
+    updateStatistics();
+    // If user clears everything, reset state
+    if (transcriptBox.innerText.trim() === '') {
+        currentParagraph = null;
+        currentSpan = null;
+    }
+    handleEmptyState();
+});
+
 // TOGGLE VOICE RECOGNITION
 btnToggle.addEventListener('click', () => {
+    if (!recognition) return;
+    
     if (isManuallyStopped) {
         // Start Listening
         isManuallyStopped = false;
-        recognition.start();
+        try {
+            recognition.start();
+        } catch (err) {
+            if (err.name !== 'InvalidStateError') console.error('Start failed:', err);
+        }
         btnToggle.classList.remove('stopped');
         toggleText.textContent = 'Stop Listening';
         visualizer.classList.remove('paused');
@@ -148,73 +166,81 @@ btnClear.addEventListener('click', resetWorkspace);
 
 // 6. Speech Recognition Event Pipeline
 
-recognition.onstart = () => {
-    console.log('Voice engine active');
-};
+if (recognition) {
+    recognition.onstart = () => {
+        console.log('Voice engine active');
+    };
 
-recognition.onresult = (event) => {
-    isActuallySpeaking = true;
-    handleEmptyState();
-    
-    let interimResult = '';
-    let finalResult = '';
+    recognition.onresult = (event) => {
+        isActuallySpeaking = true;
+        handleEmptyState();
+        
+        let interimResult = '';
+        let finalResult = '';
 
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcriptSegment = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-            finalResult += transcriptSegment;
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcriptSegment = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalResult += transcriptSegment;
+            } else {
+                interimResult += transcriptSegment;
+            }
+        }
+
+        if (!currentSpan) {
+            currentSpan = createNewSpan();
+        }
+
+        if (finalResult !== '') {
+            const cmd = finalResult.trim().toLowerCase();
+            if (cmd === 'new paragraph' || cmd === 'new paragraph.' || cmd === 'next paragraph') {
+                if (currentSpan) currentSpan.remove();
+                createNewParagraph();
+                updateStatistics();
+                smoothAutoScroll();
+                return;
+            }
+            if (cmd === 'clear transcript' || cmd === 'clear screen' || cmd === 'clear notes') {
+                if (currentSpan) currentSpan.remove();
+                resetWorkspace();
+                return;
+            }
+
+            currentSpan.textContent = finalResult;
+            currentSpan.className = 'sentence final';
+            currentSpan = null; 
+            isActuallySpeaking = false;
         } else {
-            interimResult += transcriptSegment;
-        }
-    }
-
-    if (!currentSpan) {
-        currentSpan = createNewSpan();
-    }
-
-    if (finalResult !== '') {
-        const cmd = finalResult.trim().toLowerCase();
-        if (cmd === 'new paragraph' || cmd === 'new paragraph.' || cmd === 'next paragraph') {
-            createNewParagraph();
-            return;
-        }
-        if (cmd === 'clear transcript' || cmd === 'clear screen' || cmd === 'clear notes') {
-            resetWorkspace();
-            return;
+            currentSpan.textContent = interimResult;
         }
 
-        currentSpan.textContent = finalResult;
-        currentSpan.className = 'sentence final';
-        currentSpan = null; 
+        updateStatistics();
+        smoothAutoScroll();
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Recognition Error:', event.error);
+    };
+
+    recognition.onend = () => {
         isActuallySpeaking = false;
-    } else {
-        currentSpan.textContent = interimResult;
-    }
-
-    updateStatistics();
-    smoothAutoScroll();
-};
-
-recognition.onerror = (event) => {
-    console.error('Recognition Error:', event.error);
-};
-
-recognition.onend = () => {
-    isActuallySpeaking = false;
-    setTimeout(handleEmptyState, 1000);
-    
-    // ONLY auto-restart if the user didn't manually click stop
-    if (!isManuallyStopped) {
-        try {
-            recognition.start();
-        } catch (err) {
-            if (err.name !== 'InvalidStateError') console.error('Restart failed:', err);
+        setTimeout(handleEmptyState, 1000);
+        
+        // ONLY auto-restart if the user didn't manually click stop
+        if (!isManuallyStopped && recognition) {
+            try {
+                recognition.start();
+            } catch (err) {
+                if (err.name !== 'InvalidStateError') console.error('Restart failed:', err);
+            }
         }
-    }
-};
+    };
+}
 
 // 8. Bootstrapping
 createNewParagraph();
-recognition.start();
+if (recognition) {
+    recognition.start();
+}
 handleEmptyState();
 updateStatistics();
