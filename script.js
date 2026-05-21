@@ -80,6 +80,7 @@ function initSpeechEngine() {
 /**
  * Main handler for speech results.
  * Manages both interim (real-time) and final (committed) transcript segments.
+ * Refactored to prevent duplication by processing results independently.
  * @param {SpeechRecognitionEvent} event 
  */
 function handleRecognitionResult(event) {
@@ -87,33 +88,35 @@ function handleRecognitionResult(event) {
     updateUIFeedback();
 
     let interimResult = '';
-    let finalResult = '';
-    let confidence = 1.0;
 
-    // Iterate through current results batch
+    // Iterate through current results batch starting from resultIndex
     for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i][0];
-        if (event.results[i].isFinal) {
-            finalResult += result.transcript;
-            confidence = result.confidence;
+        const transcript = result.transcript;
+        const isFinal = event.results[i].isFinal;
+
+        if (isFinal) {
+            // Process final results immediately into their own spans
+            if (!State.currentSpan) State.currentSpan = createNewSpan();
+            State.currentSpan.textContent = transcript;
+            State.currentSpan.className = `sentence final ${result.confidence < CONFIG.CONFIDENCE_THRESHOLD ? 'low-confidence' : ''}`;
+            State.currentSpan = null; // Mark as done to prevent future duplication
         } else {
-            interimResult += result.transcript;
+            // Accumulate interim results for the current "live" segment
+            interimResult += transcript;
         }
     }
 
-    // Ensure we have a span to write into
-    if (!State.currentSpan) State.currentSpan = createNewSpan();
-
-    // Process final results (committed to text)
-    if (finalResult) {
-        State.currentSpan.textContent = finalResult;
-        // Apply confidence styling: results with low accuracy get a visual indicator
-        State.currentSpan.className = `sentence final ${confidence < CONFIG.CONFIDENCE_THRESHOLD ? 'low-confidence' : ''}`;
-        State.currentSpan = null; // Prepare for next sentence
-        State.isActuallySpeaking = false;
-    } else {
-        // Update interim results (real-time feedback)
+    // Update the interim span if there is live "thinking" text
+    if (interimResult) {
+        if (!State.currentSpan) State.currentSpan = createNewSpan();
         State.currentSpan.textContent = interimResult;
+        State.currentSpan.className = 'sentence interim';
+    }
+
+    // State feedback update
+    if (!interimResult && event.results[event.results.length - 1].isFinal) {
+        State.isActuallySpeaking = false;
     }
 
     syncState();
@@ -209,6 +212,11 @@ function loadPersistence() {
 
     if (savedHTML?.trim()) {
         State.ui.transcriptBox.innerHTML = savedHTML;
+        
+        // Clean up any interim results from the previous session to prevent duplication
+        const interims = State.ui.transcriptBox.querySelectorAll('.sentence.interim');
+        interims.forEach(el => el.remove());
+
         // Re-attach currentParagraph to the last saved paragraph
         State.currentParagraph = State.ui.transcriptBox.querySelector('p:last-child');
     }
