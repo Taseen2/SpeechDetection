@@ -2,8 +2,7 @@
 
 A robust, modern speech-to-text application built with the Web Speech API and Vanilla JavaScript. This project is a refined take on the classic "Speech Detection" exercise, featuring a premium SaaS-style interface, real-time statistics, and voice-activated commands.
 
-![Project Preview](https://via.placeholder.com/860x400.png?text=Voice+Notes+Preview) *(Optional: Replace with your project screenshot)*
-
+[![Voice-Notes-Premium-Dictation-05-21-2026-09-14-PM.png](https://i.postimg.cc/MpcX8yY5/Voice-Notes-Premium-Dictation-05-21-2026-09-14-PM.png)](https://postimg.cc/9DhcdwKw)
 ## ✨ Features
 
 - **Real-time Transcription:** Uses the Web Speech API for low-latency, accurate speech-to-text conversion.
